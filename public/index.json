@@ -1,0 +1,92 @@
+[
+{
+	"uri": "//localhost:1313/",
+	"title": "AWS CodeBuild",
+	"tags": [],
+	"description": "",
+	"content": "AWS CodeBuild to automatically build docker images from Github and push them to ECR Workshop goal: Automatically build Docker images from a GitHub repo and push to ECR.\nContent Introduction Preparation Step-By-Step Summary "
+},
+{
+	"uri": "//localhost:1313/2-prerequiste/2.1-createawsaccount/",
+	"title": "Create AWS account",
+	"tags": [],
+	"description": "",
+	"content": " IAM (Identity and Access Management) to manage roles and permissions. AWS CodeBuild to run the builds. Amazon ECR to store and manage Docker container images. Content Create IAM role Create AWS CodeBuild Create Amazon ECR "
+},
+{
+	"uri": "//localhost:1313/2-prerequiste/2.1-createawsaccount/2.1.1-createiamrole/",
+	"title": "Create IAM role",
+	"tags": [],
+	"description": "",
+	"content": "Create IAM role You need to have an IAM user with sufficient permissions to create and manage IAM roles, especially the service role for AWS CodeBuild.\nEnsure the IAM user or role you are using has permissions to access and manage Amazon ECR, such as ecr:GetAuthorizationToken, ecr:BatchCheckLayerAvailability\nIf you are using a specific IAM role for CodeBuild, verify that the role has the necessary policies attached to interact with both CodeBuild and ECR.\n"
+},
+{
+	"uri": "//localhost:1313/1-introduce/",
+	"title": "Overview",
+	"tags": [],
+	"description": "",
+	"content": "AWS CodeBuild is a fully managed continuous integration service that compiles source code, runs tests, and produces software packages ready for deployment. With CodeBuild, there’s no need to provision, manage, and scale your own build servers. CodeBuild scales automatically and processes multiple builds concurrently, so your builds are not left waiting in a queue.\nKey Features:\nFully Managed: AWS CodeBuild is fully managed, which means AWS takes care of provisioning and scaling the infrastructure needed to run your builds. Scalable: CodeBuild scales up and down automatically based on the number of builds, ensuring quick and efficient processing. Customizable: You can use custom build environments to run CodeBuild projects in your own containerized environments, which can include custom software and configuration. Docker is an open-source platform designed to automate the deployment of applications inside lightweight, portable containers. Containers include the application and all its dependencies, ensuring that the application will run the same regardless of the environment.\nKey Concepts:\nContainers: Standardized units of software that package up code and all its dependencies. Images: Read-only templates that define the environment within which your application runs. Dockerfile: A text file that contains all the commands to assemble a Docker image. Amazon Elastic Container Registry (ECR) is a fully managed Docker container registry that makes it easy for developers to store, manage, and deploy Docker container images. ECR integrates with Amazon ECS, simplifying the development to production workflow.\nKey Benefits:\nFully Managed: ECR takes care of operating and scaling the infrastructure required for container image storage. Secure: Images are encrypted at rest, and IAM policies can control access to the images. Integrated: Seamless integration with other AWS services like ECS, Fargate, and CodeBuild. Use Case:\nECR is often used in conjunction with AWS CodeBuild to automate the process of building Docker images from source code stored in a version control system like GitHub, and then pushing the built images to ECR for deployment.\n"
+},
+{
+	"uri": "//localhost:1313/2-prerequiste/2.1-createawsaccount/2.1.2-createawscodebuilder/",
+	"title": "Create AWS Code Builder",
+	"tags": [],
+	"description": "",
+	"content": "AWS CodeBuild Permissions You need to have an IAM user with sufficient permissions to create and manage IAM roles, especially the service role for AWS CodeBuild. If you don\u0026rsquo;t have that permissions, click Add permissions -\u0026gt; search Container and choose AmazonEC2ContainerRegistryFullAccess Create AWS CodeBuild Search CodeBuild and go to Build projects -\u0026gt; create build project\nIn Source you can choose many Repositories for your options, in this workshop i will guide you Github\nYou can tick repository in my GitHub account if you connected to your Github, here I choose Public repository and paste my Github Link on Repository URL\nChoose Amazon Linux In this step, note that the primary function of buildspec.yml is to specify the commands that should be run at each phase of the build process, such as installing dependencies, building the application, running tests, and packaging the output.\nYou can also create group name of the logs to see logs "
+},
+{
+	"uri": "//localhost:1313/2-prerequiste/2.2-creategithubrepo/",
+	"title": "Create Github Repository",
+	"tags": [],
+	"description": "",
+	"content": "Create Github Repo with Dockerfile to build image and buildspec.yml to run automatically\n"
+},
+{
+	"uri": "//localhost:1313/2-prerequiste/",
+	"title": "Preparation ",
+	"tags": [],
+	"description": "",
+	"content": "\rBefore you begin, ensure you need to have the following:\nAWS Account: An AWS account with sufficient permissions to access and use the following services\nGitHub Repository: A GitHub repository containing a Dockerfile and any other necessary files for building your Docker image. The Dockerfile defines the environment and steps required to create your application’s Docker image.\nAWS CLI: The AWS Command Line Interface (CLI) should be installed and configured on your local machine. This is essential for interacting with AWS services from your terminal.\nDocker: Docker should be installed and running on your local machine. Docker is used to build, run, and manage containers.\nContent Create AWS account Create Github Repository Install AWS CLI Install Docker "
+},
+{
+	"uri": "//localhost:1313/3-step-by-step/",
+	"title": "Step-By-Step ",
+	"tags": [],
+	"description": "",
+	"content": "Add Dockerfile In your repository, create a new file named Dockerfile in the root directory. You can copy my simple Dockerfile to build Nodejs image Build Yaml 1. Pre-build Phase aws ecr get-login-password \u0026ndash;region ap-southeast-2 | docker login \u0026ndash;username AWS \u0026ndash;password-stdin 590183925097.dkr.ecr.ap-southeast-2.amazonaws.com:\nRetrieves the authentication token for logging into ECR and logs Docker into the ECR registry in the ap-southeast-2 region.\n590183925097.dkr.ecr.ap-southeast-2.amazonaws.com is the ECR repository URL.\nREPOSITORY_URI=590183925097.dkr.ecr.ap-southeast-2.amazonaws.com/test: Sets the repository URI in the ECR to the REPOSITORY_URI variable. You can change your RepoURL here\n2. Build Phase echo Build started on date: Outputs a message indicating when the build started.\ndocker build \u0026ndash;platform linux/amd64 -t $REPOSITORY_URI .:\nInitiates the Docker build process using the Dockerfile in the current directory. The \u0026ndash;platform linux/amd64 option ensures the image is built for the x86_64 architecture. Tags the image as latest. docker tag $REPOSITORY_URI $REPOSITORY_URI:$IMAGE_TAG:\nTags the newly built Docker image with the IMAGE_TAG generated in the pre_build phase. 3. Post-build Phase docker push $REPOSITORY_URI:\nPushes the Docker image with the latest tag to Amazon ECR.\ndocker push $REPOSITORY_URI:$IMAGE_TAG:\nPushes the Docker image with the IMAGE_TAG to Amazon ECR.\nprintf \u0026lsquo;[{\u0026ldquo;name\u0026rdquo;:\u0026ldquo;simple-app\u0026rdquo;,\u0026ldquo;imageUri\u0026rdquo;:\u0026quot;%s\u0026quot;}]\u0026rsquo; $REPOSITORY_URI:$IMAGE_TAG \u0026gt; imagedefinitions.json:\nCreates an imagedefinitions.json file containing information about the Docker image that was built. This file can be used by other services, such as ECS (Elastic Container Service), for deploying the container.\ncat imagedefinitions.json:\nOutputs the contents of the imagedefinitions.json file to verify that it has been created correctly.\n4. Artifacts files: imagedefinitions.json: Specifies that the imagedefinitions.json file will be stored as an artifact after the build completes. This artifact can be used in subsequent steps of a CI/CD pipeline.\nRun the Build 1. Commit and Push Commit the \u0026ldquo;buildspec.yml\u0026rdquo; file to your github repository\n2. Start the Build Go back to your CodeBuild project in the AWS Management Console.\nClick on Start build to trigger the build process.\n3. Monitor the Build Monitor the build progress in the AWS CodeBuild console. Check the logs to ensure everything is running smoothly. 4. Verify Docker Image in ECR: After the build completes, go to the Amazon ECR console.\nVerify that the Docker image has been pushed to the repository. Now whenever you commit code, the pipeline process will run automatically\n5. Clean Up Resources Remove ECR Repository: If you no longer need the ECR repository, delete it to avoid incurring charges.\nDelete CodeBuild Project: Delete the CodeBuild project if it\u0026rsquo;s no longer required.\nRevoke IAM Permissions: Adjust or remove IAM roles and permissions to follow the principle of least privilege.\n"
+},
+{
+	"uri": "//localhost:1313/4-summary/",
+	"title": "Summary ",
+	"tags": [],
+	"description": "",
+	"content": "This workshop provides a comprehensive guide on how to automate the process of building Docker images from a GitHub repository and pushing them to Amazon ECR using AWS CodeBuild. Participants will gain hands-on experience in setting up and configuring AWS services to streamline the CI/CD pipeline for containerized applications.\nKey Topics Covered: Introduction to AWS CodeBuild, Docker, and Amazon ECR: Learn the basics of AWS CodeBuild, Docker, and Amazon Elastic Container Registry (ECR), and understand how they work together in a CI/CD pipeline.\nPrerequisites: Ensure you have an AWS account with access to IAM, CodeBuild, and ECR, a GitHub repository with a Dockerfile, AWS CLI configured, and Docker installed locally.\nIAM Role Configuration: Set up the necessary IAM roles and permissions to allow CodeBuild to interact with other AWS services securely.\nSetting Up AWS CodeBuild: Configure a CodeBuild project that will automatically build Docker images from the code in your GitHub repository.\nPushing Docker Images to Amazon ECR: Use AWS CodeBuild to push the Docker images to Amazon ECR after they are built.\nUnderstanding the buildspec.yml File: Break down the buildspec.yml file, which defines the steps CodeBuild will take to build and push your Docker images.\nStep-by-Step Implementation: Follow a detailed, step-by-step guide to set up the entire pipeline, from configuring AWS services to writing the buildspec.yml file and deploying the Docker images.\nBy the end of this workshop, you will have a fully automated pipeline that builds Docker images from your source code and pushes them to Amazon ECR, ready for deployment in a production environment.\n"
+},
+{
+	"uri": "//localhost:1313/2-prerequiste/2.3-createawscli/",
+	"title": "Configure AWL CLI",
+	"tags": [],
+	"description": "",
+	"content": " You can install AWS CLI by following the - official guide.\nAfter installation, configure it using: aws configure\nYou\u0026rsquo;ll need your AWS access key, secret key, default region, and output format for configuration.\n"
+},
+{
+	"uri": "//localhost:1313/2-prerequiste/2.1-createawsaccount/2.1.3-createamazonecr/",
+	"title": "Create Amazon ECR",
+	"tags": [],
+	"description": "",
+	"content": "Amazon ECR Search ecr and click Elastic Container Registry -\u0026gt; create Repository\nThis is will a registry to store your images has been built and pushed.\nNow you had enough elements to do this workshop, let\u0026rsquo;s move on "
+},
+{
+	"uri": "//localhost:1313/categories/",
+	"title": "Categories",
+	"tags": [],
+	"description": "",
+	"content": ""
+},
+{
+	"uri": "//localhost:1313/tags/",
+	"title": "Tags",
+	"tags": [],
+	"description": "",
+	"content": ""
+}]
